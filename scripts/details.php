@@ -76,6 +76,62 @@ if (!$user->can_view_task($task_details)) {
 		}
 		$page->assign('userlist', $userlist);
 
+		# Build the category select array, a movetask or normal taskedit
+		# then in the template just use tpl_select($catselect);
+
+		# keep last category selection
+		$catselected=Req::val('product_category', $task_details['product_category']);
+		if(isset($move) && $move==1){
+			# listglobalcats
+			$gcats=$proj->listCategories(0);
+			if( count($gcats)>0){
+				foreach($gcats as $cat){
+					$gcatopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$gcatopts[count($gcatopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options'][]=array('optgroup'=>1, 'label'=>L('categoriesglobal'), 'options'=>$gcatopts);
+			}
+			# listprojectcats
+			$pcats=$proj->listCategories($proj->id);
+			if( count($pcats)>0){
+				foreach($pcats as $cat){
+					$pcatopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$pcatopts[count($pcatopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options'][]=array('optgroup'=>1, 'label'=>L('categoriesproject'), 'options'=>$pcatopts);
+			}
+			# listtargetcats
+			$tcats=$toproject->listCategories($toproject->id);
+			if( count($tcats)>0){
+				foreach($tcats as $cat){
+					$tcatopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$tcatopts[count($tcatopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options'][]=array('optgroup'=>1, 'label'=>L('categoriestarget'), 'options'=>$tcatopts);
+			}
+		}else{
+			# just the normal merged global/projectcats
+			$cats=$proj->listCategories();
+			if( count($cats)>0){
+				foreach($cats as $cat){
+					$catopts[]=array('value'=>$cat['category_id'], 'label'=>$cat['category_name']);
+					if($catselected==$cat['category_id']){
+						$catopts[count($catopts)-1]['selected']=1;
+					}
+				}
+				$catsel['options']=$catopts;
+			}
+		}
+		$catsel['name']='product_category';
+		$catsel['attr']['id']='category';
+		$page->assign('catselect', $catsel);
+
 		# user tries to move a task to a different project:
 		if(isset($move) && $move==1){
 			$page->assign('move', 1);
